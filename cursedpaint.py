@@ -9,8 +9,8 @@ curses.cbreak()
 curses.mousemask(1)
 curses.mouseinterval(0)
 
-
 def main(stdscr):
+
     stdscr.nodelay(True)
     stdscr.keypad(True)
     stdscr.clear()
@@ -29,13 +29,22 @@ def main(stdscr):
     stdscr.addstr(3, 0, 'Brushes: # @ - + $')
     stdscr.refresh()
 
+
+
     
 
     while True:
+        mouseX = 0
+        mouseY = 0
+        mouseHeld = False
         event = stdscr.getch()
         if event == ord('q'): break
         if event == curses.KEY_MOUSE:
-            _, mouseX, mouseY, _, _ = curses.getmouse()
+            _, mouseX, mouseY, _, state = curses.getmouse()
+            if state | curses.BUTTON1_PRESSED:
+                mouseHeld = True
+            elif state | curses.BUTTON1_RELEASED:
+                mouseHeld = False
             if mouseY == 1 and mouseX in range(0, 28): break
             if mouseY == 2:
                 if mouseX in range(0, 3): paintColor = 1
@@ -53,9 +62,13 @@ def main(stdscr):
                 continue
             stdscr.addstr(0,0, '            ')
             stdscr.addstr(0, 0, 'Y: {} X: {}'.format(mouseY, mouseX))
-            stdscr.addch(mouseY, mouseX, brushTip, curses.color_pair(paintColor))
             stdscr.refresh()
 
+        if mouseHeld:
+            # Paint
+            stdscr.addch(mouseY, mouseX, brushTip, curses.color_pair(paintColor))
+            stdscr.refresh()
+    
     curses.echo()
     curses.nocbreak()
     stdscr.keypad(False)
